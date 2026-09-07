@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "gemini-subagent-mcp": "./dist/index.js"
+    "gemini-subagent-mcp": "dist/index.js"
   },
   "files": [
     "dist",
