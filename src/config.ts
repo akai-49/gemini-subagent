@@ -66,28 +66,40 @@ export async function runInteractiveSetup(): Promise<void> {
 
   // 2. Prompt for Model Selection
   console.log("\nSelect your default Gemini model:");
-  console.log("  1) gemini-2.5-flash  (Recommended: extremely fast, 1M+ token context)");
-  console.log("  2) gemini-2.5-pro    (Deep reasoning, complex coding, 2M+ token context)");
-  console.log("  3) gemini-1.5-pro    (Balanced performance)");
-  console.log("  4) Custom model name");
+  console.log("  1) gemini-3.8-flash       (Recommended: Latest flagship Flash, ultra-fast, high intelligence)");
+  console.log("  2) gemini-3.7-flash       (Hybrid reasoning Flash model)");
+  console.log("  3) gemini-3.6-flash       (High-efficiency Flash model)");
+  console.log("  4) gemini-3.5-pro         (Deep reasoning, heavy architectural coding & large context)");
+  console.log("  5) gemini-2.5-flash       (Stable standard Flash)");
+  console.log("  6) gemini-2.5-pro         (Stable standard Pro)");
+  console.log("  7) Custom model name");
 
-  const modelChoice = await rl.question("\nEnter choice [1-4] (default: 1): ");
-  let defaultModel = "gemini-2.5-flash";
+  const modelChoice = await rl.question("\nEnter choice [1-7] (default: 1 - gemini-3.8-flash): ");
+  let defaultModel = "gemini-3.8-flash";
 
   switch (modelChoice.trim()) {
     case "2":
-      defaultModel = "gemini-2.5-pro";
+      defaultModel = "gemini-3.7-flash";
       break;
     case "3":
-      defaultModel = "gemini-1.5-pro";
+      defaultModel = "gemini-3.6-flash";
       break;
-    case "4": {
-      const customModel = await rl.question("Enter custom model name (e.g., gemini-2.5-flash): ");
+    case "4":
+      defaultModel = "gemini-3.5-pro";
+      break;
+    case "5":
+      defaultModel = "gemini-2.5-flash";
+      break;
+    case "6":
+      defaultModel = "gemini-2.5-pro";
+      break;
+    case "7": {
+      const customModel = await rl.question("Enter custom model name (e.g., gemini-3.8-flash): ");
       if (customModel.trim()) defaultModel = customModel.trim();
       break;
     }
     default:
-      defaultModel = "gemini-2.5-flash";
+      defaultModel = "gemini-3.8-flash";
       break;
   }
 
@@ -126,3 +138,4 @@ export async function runInteractiveSetup(): Promise<void> {
 
   rl.close();
 }
+

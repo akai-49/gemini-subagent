@@ -55,7 +55,7 @@ export async function generateWithGemini(options: GeminiGenerateOptions): Promis
     );
   }
 
-  const model = options.model || process.env.GEMINI_DEFAULT_MODEL || "gemini-2.5-flash";
+  const model = options.model || process.env.GEMINI_DEFAULT_MODEL || "gemini-3.8-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const body: Record<string, any> = {

@@ -26,23 +26,28 @@ if (isSetupRequested || (isInteractiveTerminal && args.length === 0)) {
 // MCP Server Initialization
 // ---------------------------------------------------------
 const storedConfig = loadStoredConfig();
-const defaultModel = storedConfig.defaultModel || process.env.GEMINI_DEFAULT_MODEL || "gemini-2.5-flash";
+const defaultModel = storedConfig.defaultModel || process.env.GEMINI_DEFAULT_MODEL || "gemini-3.8-flash";
 
 const server = new McpServer({
   name: "gemini-subagent-mcp",
-  version: "1.0.1",
+  version: "1.0.2",
 });
 
 // Tool 1: General Subagent Delegation
 server.tool(
   "gemini_subagent",
   `Delegate tasks, reasoning, exploratory codebase research, or drafting solutions to the Google Gemini subagent.
-Supports massive context (up to 1M+ tokens on Gemini 2.5 Flash / Pro).
+Supports latest Gemini models with massive context windows (up to 1M+ / 2M+ tokens):
+- 'gemini-3.8-flash' (recommended: ultra-fast, latest generation)
+- 'gemini-3.7-flash' (hybrid reasoning flash model)
+- 'gemini-3.6-flash' (high-efficiency flash model)
+- 'gemini-3.5-pro' (deep architectural reasoning)
+- 'gemini-2.5-flash' / 'gemini-2.5-pro'
 
 Parameters:
 - task (required): Clear instructions for what you want the Gemini subagent to do.
 - context (optional): Any code snippets, requirements, or documentation to feed as background.
-- model (optional): 'gemini-2.5-flash' or 'gemini-2.5-pro' (default: ${defaultModel}).
+- model (optional): Gemini model (default: ${defaultModel}).
 - temperature (optional): 0.0 to 1.0 (default: 0.2).`,
   {
     task: z.string().min(1, "Task description is required").describe("The prompt or task for the subagent to execute"),

@@ -24,10 +24,12 @@ npx gemini-subagent-mcp init
 The interactive wizard will:
 1. 🔑 Prompt for your **Gemini API Key** (or keep existing)
 2. 🤖 Ask you to choose your **Default Model**:
-   - `gemini-2.5-flash` (Recommended: extremely fast, 1M+ context)
-   - `gemini-2.5-pro` (Deep reasoning & complex architectural coding)
-   - `gemini-1.5-pro`
-   - Custom model
+   - `gemini-3.8-flash` (Recommended: Latest flagship Flash, ultra-fast, high intelligence)
+   - `gemini-3.7-flash` (Next-gen hybrid reasoning Flash model)
+   - `gemini-3.6-flash` (High-efficiency Flash model)
+   - `gemini-3.5-pro` (Deep architectural reasoning & complex coding)
+   - `gemini-2.5-flash` / `gemini-2.5-pro`
+   - Custom model name
 3. 💾 Save your settings to `~/.config/gemini-subagent/config.json`
 4. 🔌 Automatically register the server with **Claude Code CLI**!
 
