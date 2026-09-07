@@ -1,12 +1,22 @@
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { loadStoredConfig } from "./config.js";
 
 // Load environment variables with smart search
 function initEnv() {
+  // 1. Check stored user config (~/.config/gemini-subagent/config.json)
+  const stored = loadStoredConfig();
+  if (stored.apiKey && !process.env.GEMINI_API_KEY) {
+    process.env.GEMINI_API_KEY = stored.apiKey;
+  }
+  if (stored.defaultModel && !process.env.GEMINI_DEFAULT_MODEL) {
+    process.env.GEMINI_DEFAULT_MODEL = stored.defaultModel;
+  }
+
   if (process.env.GEMINI_API_KEY) return;
 
-  // Search cwd, package dir, and standard user config locations
+  // 2. Search cwd, package dir, and standard user config locations
   const searchPaths = [
     path.resolve(process.cwd(), ".env"),
     path.resolve(path.dirname(new URL(import.meta.url).pathname), "../.env"),
@@ -40,7 +50,8 @@ export async function generateWithGemini(options: GeminiGenerateOptions): Promis
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error(
-      "GEMINI_API_KEY is not set. Please set it in your environment (export GEMINI_API_KEY=...) or in a .env file."
+      "GEMINI_API_KEY is not configured.\n" +
+      "👉 Run 'npx gemini-subagent-mcp init' in your terminal to interactively set your API key and model."
     );
   }
 

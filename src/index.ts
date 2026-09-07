@@ -3,10 +3,34 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { generateWithGemini } from "./gemini.js";
+import { runInteractiveSetup, loadStoredConfig } from "./config.js";
+
+// Check if user is invoking interactive setup wizard
+const args = process.argv.slice(2);
+const isSetupRequested =
+  args.includes("init") ||
+  args.includes("setup") ||
+  args.includes("config") ||
+  args.includes("--setup") ||
+  args.includes("-s");
+
+// If run directly in an interactive terminal without MCP piping
+const isInteractiveTerminal = process.stdin.isTTY && process.stdout.isTTY;
+
+if (isSetupRequested || (isInteractiveTerminal && args.length === 0)) {
+  await runInteractiveSetup();
+  process.exit(0);
+}
+
+// ---------------------------------------------------------
+// MCP Server Initialization
+// ---------------------------------------------------------
+const storedConfig = loadStoredConfig();
+const defaultModel = storedConfig.defaultModel || process.env.GEMINI_DEFAULT_MODEL || "gemini-2.5-flash";
 
 const server = new McpServer({
   name: "gemini-subagent-mcp",
-  version: "1.0.0",
+  version: "1.0.1",
 });
 
 // Tool 1: General Subagent Delegation
@@ -18,12 +42,12 @@ Supports massive context (up to 1M+ tokens on Gemini 2.5 Flash / Pro).
 Parameters:
 - task (required): Clear instructions for what you want the Gemini subagent to do.
 - context (optional): Any code snippets, requirements, or documentation to feed as background.
-- model (optional): 'gemini-2.5-flash' (default, very fast) or 'gemini-2.5-pro' (deep reasoning).
+- model (optional): 'gemini-2.5-flash' or 'gemini-2.5-pro' (default: ${defaultModel}).
 - temperature (optional): 0.0 to 1.0 (default: 0.2).`,
   {
     task: z.string().min(1, "Task description is required").describe("The prompt or task for the subagent to execute"),
     context: z.string().optional().describe("Optional context, code snippets, or error logs"),
-    model: z.string().default("gemini-2.5-flash").describe("Gemini model to use ('gemini-2.5-flash' or 'gemini-2.5-pro')"),
+    model: z.string().default(defaultModel).describe(`Gemini model to use (default: ${defaultModel})`),
     temperature: z.number().min(0).max(1).default(0.2).describe("Sampling temperature"),
   },
   async ({ task, context, model, temperature }) => {
@@ -67,11 +91,11 @@ Checks for:
 Parameters:
 - code_or_diff (required): The git diff or source code to review.
 - focus_areas (optional): Specific concerns (e.g. 'check multi-tenant isolation', 'verify error handling').
-- model (optional): Gemini model tier (default: 'gemini-2.5-flash').`,
+- model (optional): Gemini model tier (default: ${defaultModel}).`,
   {
     code_or_diff: z.string().min(1, "code_or_diff is required").describe("The git diff or code to review"),
     focus_areas: z.string().optional().describe("Specific review focus areas or architectural constraints"),
-    model: z.string().default("gemini-2.5-flash").describe("Model to use"),
+    model: z.string().default(defaultModel).describe(`Model to use (default: ${defaultModel})`),
   },
   async ({ code_or_diff, focus_areas, model }) => {
     try {
@@ -110,11 +134,11 @@ server.tool(
 Parameters:
 - question (required): The analytical question, bug symptom, or pattern you are searching for.
 - content (required): The large corpus (e.g. log dump, concatenated files, or API spec).
-- model (optional): Gemini model tier (default: 'gemini-2.5-flash').`,
+- model (optional): Gemini model tier (default: ${defaultModel}).`,
   {
     question: z.string().min(1, "Question is required").describe("The question or search query"),
     content: z.string().min(1, "Content is required").describe("The high-volume text, logs, or codebase dump"),
-    model: z.string().default("gemini-2.5-flash").describe("Model to use"),
+    model: z.string().default(defaultModel).describe(`Model to use (default: ${defaultModel})`),
   },
   async ({ question, content, model }) => {
     try {
@@ -147,7 +171,6 @@ Parameters:
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  // Log to stderr so stdout remains clean for MCP JSON-RPC protocol
   console.error("Gemini Subagent MCP server running on stdio");
 }
 
@@ -155,4 +178,3 @@ main().catch((err) => {
   console.error("Fatal error starting Gemini Subagent MCP server:", err);
   process.exit(1);
 });
-

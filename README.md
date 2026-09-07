@@ -13,52 +13,61 @@ Equip your primary AI assistant (like Claude Code) with Gemini's massive 1M+ tok
 
 ---
 
+## ⚡ 1-Minute Interactive Setup Wizard
+
+Run this command in your terminal:
+
+```bash
+npx gemini-subagent-mcp init
+```
+
+The interactive wizard will:
+1. 🔑 Prompt for your **Gemini API Key** (or keep existing)
+2. 🤖 Ask you to choose your **Default Model**:
+   - `gemini-2.5-flash` (Recommended: extremely fast, 1M+ context)
+   - `gemini-2.5-pro` (Deep reasoning & complex architectural coding)
+   - `gemini-1.5-pro`
+   - Custom model
+3. 💾 Save your settings to `~/.config/gemini-subagent/config.json`
+4. 🔌 Automatically register the server with **Claude Code CLI**!
+
+---
+
 ## 🌟 Tools Provided
 
 Once connected, your primary agent automatically gains 3 specialized subagent tools:
 
 | Tool | Purpose | Key Parameters |
 | :--- | :--- | :--- |
-| `gemini_subagent` | General task delegation, alternative design exploration, and multi-file reasoning. | `task` (required), `context`, `model` (default: `gemini-2.5-flash`), `temperature` |
+| `gemini_subagent` | General task delegation, alternative design exploration, and multi-file reasoning. | `task` (required), `context`, `model` (default: your chosen model), `temperature` |
 | `gemini_code_review` | Independent second-opinion code review on PRs and git diffs. Detects edge cases, concurrency hazards, memory leaks, and security flaws. | `code_or_diff` (required), `focus_areas`, `model` |
 | `gemini_analyze_large_context` | Digests high-volume logs, whole repository dumps, and documentation utilizing Gemini's 1M+ token context window. | `question` (required), `content` (required), `model` |
 
 ---
 
-## 🔑 Prerequisites & Configuration
+## 🚀 Manual Client Configurations
 
-You need a **Google Gemini API Key** (free tier available at [Google AI Studio](https://aistudio.google.com/)).
-
-You can provide the key via:
-- **Environment Variable** (recommended): `export GEMINI_API_KEY="your_api_key_here"`
-- **Client Configuration**: Passed directly in your MCP client `env` settings (shown below).
-- **`.env` File**: Placed in your home directory (`~/.env`), working directory, or `~/.config/gemini/.env`.
-
----
-
-## 🚀 Quick Setup by Client
+If you prefer to configure your clients manually:
 
 ### 1. Claude Code CLI
 
-Run this single command in your terminal to enable the Gemini subagent globally across all projects:
-
 ```bash
-claude mcp add --scope user gemini-subagent npx -y gemini-subagent-mcp
+claude mcp add --scope user gemini-subagent -- npx -y gemini-subagent-mcp
 ```
 
-Or pass your API key directly:
+Or pass your API key as an environment variable:
 ```bash
-claude mcp add --scope user -e GEMINI_API_KEY="your-key" gemini-subagent npx -y gemini-subagent-mcp
+claude mcp add --scope user -e GEMINI_API_KEY="your_api_key_here" gemini-subagent -- npx -y gemini-subagent-mcp
 ```
 
-**Verify inside Claude Code:**
-Launch `claude` and run `/mcp`. You should see `gemini-subagent` connected with status **Connected** and its 3 tools available!
+**Verify:**
+Launch `claude` and run `/mcp`. You should see `gemini-subagent` connected with status **Connected**!
 
 ---
 
 ### 2. Google Antigravity (IDE / Desktop 2.0)
 
-Add the following to your global Antigravity MCP config (`~/.gemini/config/mcp_config.json`):
+Add to `~/.gemini/config/mcp_config.json`:
 
 ```json
 {
@@ -78,7 +87,7 @@ Add the following to your global Antigravity MCP config (`~/.gemini/config/mcp_c
 
 ### 3. Claude Desktop
 
-Add to your `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`, Windows: `%APPDATA%\Claude\claude_desktop_config.json`):
+Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`, Windows: `%APPDATA%\Claude\claude_desktop_config.json`):
 
 ```json
 {
@@ -96,9 +105,7 @@ Add to your `claude_desktop_config.json` (macOS: `~/Library/Application Support/
 
 ---
 
-### 4. Cursor / VS Code (Cline / Roo-Code / Copilot)
-
-Add to your MCP settings file:
+### 4. Cursor / VS Code
 
 ```json
 {
@@ -118,37 +125,24 @@ Add to your MCP settings file:
 
 ## 💡 Example Usage Prompts in Claude Code
 
-Once configured, Claude Code can autonomously call Gemini whenever you ask:
+- **Second-Opinion Code Review**:
+  > *"Review our staged git changes for concurrency bugs and edge cases using the gemini_code_review tool."*
 
-- **Second-Opinion Review**:
-  > *"Review our staged git changes for concurrency bugs and performance regressions using the gemini_code_review tool."*
-
-- **Large Context / Log Investigation**:
-  > *"Use the gemini_analyze_large_context tool to search this 50MB crash log and find why the worker process terminated."*
+- **Massive Log / Context Investigation**:
+  > *"Use the gemini_analyze_large_context tool to search this crash dump and find why the worker process terminated."*
 
 - **Parallel Brainstorming**:
-  > *"Use the gemini_subagent tool to propose an alternative architecture for our caching layer and compare it to our current plan."*
+  > *"Use the gemini_subagent tool to propose an alternative architecture for our background queue."*
 
 ---
 
-## 🛠️ Local Development & Contributing
-
-If you wish to clone and modify the server:
+## 🛠️ Local Development
 
 ```bash
 git clone https://github.com/akai-49/gemini-subagent.git
 cd gemini-subagent
 npm install
-npm run build
-```
-
-### Running in Development Mode
-```bash
 npm run dev
-```
-
-### Running Tests
-```bash
 npm test
 ```
 
