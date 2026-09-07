@@ -6,13 +6,13 @@ import fs from "fs";
 function initEnv() {
   if (process.env.GEMINI_API_KEY) return;
 
-  // Search cwd, home, and standard fallback locations
+  // Search cwd, package dir, and standard user config locations
   const searchPaths = [
     path.resolve(process.cwd(), ".env"),
     path.resolve(path.dirname(new URL(import.meta.url).pathname), "../.env"),
     path.resolve(process.env.HOME || "", ".env"),
+    path.resolve(process.env.HOME || "", ".config/gemini/.env"),
     path.resolve(process.env.HOME || "", ".claude/.env"),
-    path.resolve(process.env.HOME || "", "Frappe/analytics_agent/.env"),
   ];
 
   for (const envPath of searchPaths) {
@@ -94,4 +94,3 @@ export async function generateWithGemini(options: GeminiGenerateOptions): Promis
 
   return textPart;
 }
-
