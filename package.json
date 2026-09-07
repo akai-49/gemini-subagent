@@ -7,11 +7,21 @@
   "bin": {
     "gemini-subagent-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
-    "test": "node --test"
+    "test": "node test/test-server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akai-49/gemini-subagent.git"
   },
   "keywords": [
     "mcp",
@@ -19,10 +29,15 @@
     "gemini",
     "subagent",
     "claude",
+    "claude-code",
     "antigravity"
   ],
-  "author": "",
+  "author": "akai-49",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/akai-49/gemini-subagent/issues"
+  },
+  "homepage": "https://github.com/akai-49/gemini-subagent#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "dotenv": "^16.5.0",

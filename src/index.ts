@@ -155,3 +155,4 @@ main().catch((err) => {
   console.error("Fatal error starting Gemini Subagent MCP server:", err);
   process.exit(1);
 });
+

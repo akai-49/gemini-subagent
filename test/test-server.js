@@ -55,3 +55,4 @@ setTimeout(() => {
   child.kill();
   process.exit(1);
 }, 5000);
+
