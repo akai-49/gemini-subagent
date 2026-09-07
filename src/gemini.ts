@@ -1,35 +1,16 @@
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
-import { loadStoredConfig } from "./config.js";
+import { getEffectiveConfig } from "./config.js";
 
-// Load environment variables with smart search
+// Load environment variables with smart search and Antigravity auto-discovery
 function initEnv() {
-  // 1. Check stored user config (~/.config/gemini-subagent/config.json)
-  const stored = loadStoredConfig();
-  if (stored.apiKey && !process.env.GEMINI_API_KEY) {
-    process.env.GEMINI_API_KEY = stored.apiKey;
+  const effective = getEffectiveConfig();
+  if (effective.apiKey && !process.env.GEMINI_API_KEY) {
+    process.env.GEMINI_API_KEY = effective.apiKey;
   }
-  if (stored.defaultModel && !process.env.GEMINI_DEFAULT_MODEL) {
-    process.env.GEMINI_DEFAULT_MODEL = stored.defaultModel;
-  }
-
-  if (process.env.GEMINI_API_KEY) return;
-
-  // 2. Search cwd, package dir, and standard user config locations
-  const searchPaths = [
-    path.resolve(process.cwd(), ".env"),
-    path.resolve(path.dirname(new URL(import.meta.url).pathname), "../.env"),
-    path.resolve(process.env.HOME || "", ".env"),
-    path.resolve(process.env.HOME || "", ".config/gemini/.env"),
-    path.resolve(process.env.HOME || "", ".claude/.env"),
-  ];
-
-  for (const envPath of searchPaths) {
-    if (fs.existsSync(envPath)) {
-      dotenv.config({ path: envPath });
-      if (process.env.GEMINI_API_KEY) break;
-    }
+  if (effective.defaultModel && !process.env.GEMINI_DEFAULT_MODEL) {
+    process.env.GEMINI_DEFAULT_MODEL = effective.defaultModel;
   }
 }
 

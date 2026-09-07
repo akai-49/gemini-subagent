@@ -3,7 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { generateWithGemini } from "./gemini.js";
-import { runInteractiveSetup, loadStoredConfig } from "./config.js";
+import { runInteractiveSetup, getEffectiveConfig } from "./config.js";
 
 // Check if user is invoking interactive setup wizard
 const args = process.argv.slice(2);
@@ -25,8 +25,8 @@ if (isSetupRequested || (isInteractiveTerminal && args.length === 0)) {
 // ---------------------------------------------------------
 // MCP Server Initialization
 // ---------------------------------------------------------
-const storedConfig = loadStoredConfig();
-const defaultModel = storedConfig.defaultModel || process.env.GEMINI_DEFAULT_MODEL || "gemini-3.8-flash";
+const effectiveConfig = getEffectiveConfig();
+const defaultModel = effectiveConfig.defaultModel || "gemini-3.8-flash";
 
 const server = new McpServer({
   name: "gemini-subagent-mcp",
