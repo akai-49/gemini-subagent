@@ -1,6 +1,6 @@
 {
   "name": "gemini-subagent-mcp",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Universal Gemini Subagent MCP Server for Claude Code, Antigravity, and AI coding assistants",
   "main": "dist/index.js",
   "type": "module",

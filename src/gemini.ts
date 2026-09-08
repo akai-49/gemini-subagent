@@ -23,20 +23,18 @@ export interface GeminiGenerateOptions {
   temperature?: number;
 }
 
-/**
- * Executes a prompt against Google Gemini REST API.
- * Uses native fetch for zero-dependency reliability across Node 20+.
- */
-export async function generateWithGemini(options: GeminiGenerateOptions): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "GEMINI_API_KEY is not configured.\n" +
-      "👉 Run 'npx gemini-subagent-mcp init' in your terminal to interactively set your API key and model."
-    );
-  }
+const FALLBACK_MODELS: Record<string, string[]> = {
+  "gemini-3.8-flash": ["gemini-3.6-flash", "gemini-3.7-flash", "gemini-2.5-pro"],
+  "gemini-3.7-flash": ["gemini-3.6-flash", "gemini-3.8-flash"],
+  "gemini-3.5-pro": ["gemini-3.6-flash", "gemini-2.5-pro"],
+  "gemini-2.5-flash": ["gemini-3.6-flash", "gemini-3.8-flash"],
+};
 
-  const model = options.model || process.env.GEMINI_DEFAULT_MODEL || "gemini-3.8-flash";
+async function executeSingleRequest(
+  apiKey: string,
+  model: string,
+  options: GeminiGenerateOptions
+): Promise<string> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const body: Record<string, any> = {
@@ -56,24 +54,42 @@ export async function generateWithGemini(options: GeminiGenerateOptions): Promis
     };
   }
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  // Set a 60-second timeout to prevent indefinite hangs
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    if (err.name === "AbortError") {
+      throw new Error(`Gemini request timed out after 60s for model ${model}`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Gemini API error (HTTP ${response.status}): ${errText}`);
+    const error = new Error(`Gemini API error (HTTP ${response.status}): ${errText}`);
+    (error as any).status = response.status;
+    (error as any).errText = errText;
+    throw error;
   }
 
   const data = (await response.json()) as any;
   const candidate = data.candidates?.[0];
 
   if (!candidate) {
-    throw new Error("No candidate returned by Gemini API.");
+    throw new Error(`No candidate returned by Gemini API for model ${model}.`);
   }
 
   const textPart = candidate.content?.parts?.[0]?.text;
@@ -85,4 +101,48 @@ export async function generateWithGemini(options: GeminiGenerateOptions): Promis
   }
 
   return textPart;
+}
+
+/**
+ * Executes a prompt against Google Gemini REST API.
+ * Automatically handles 503 (high demand) and 429 (rate limits) by falling back to healthy models.
+ */
+export async function generateWithGemini(options: GeminiGenerateOptions): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "GEMINI_API_KEY is not configured.\n" +
+      "👉 Run 'npx gemini-subagent-mcp init' in your terminal to interactively set your API key and model."
+    );
+  }
+
+  const primaryModel = options.model || process.env.GEMINI_DEFAULT_MODEL || "gemini-3.6-flash";
+  const fallbacks = FALLBACK_MODELS[primaryModel] || ["gemini-3.6-flash"];
+  const candidateModels = [primaryModel, ...fallbacks.filter((m) => m !== primaryModel)];
+
+  let lastError: any = null;
+
+  for (const model of candidateModels) {
+    try {
+      return await executeSingleRequest(apiKey, model, options);
+    } catch (err: any) {
+      lastError = err;
+      const status = err.status;
+      const isTransient = status === 503 || status === 429 || status === 500;
+
+      if (isTransient) {
+        console.error(
+          `[gemini-subagent-mcp] Model ${model} is experiencing high demand (HTTP ${status}). Attempting fallback model...`
+        );
+        // Small 500ms backoff before fallback
+        await new Promise((r) => setTimeout(r, 500));
+        continue;
+      }
+
+      // Non-transient errors (e.g. 400 bad request, 401 invalid key) should fail immediately
+      throw err;
+    }
+  }
+
+  throw lastError;
 }
